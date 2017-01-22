@@ -15,6 +15,7 @@ function MyGame() {
     // textures: 
     this.kFontImage = "assets/Consolas-72.png";
     this.kMinionSprite = "assets/minion_sprite.png";
+    this.kBound = "assets/Bound.png";
 
     // the fonts
     this.kFontCon16 = "assets/fonts/Consolas-16";  // notice font names do not need extensions!
@@ -27,9 +28,10 @@ function MyGame() {
     this.mCamera = null;
 
     // the hero and the support objects
-    this.mHero = null;
+    this.mBound = null;
     this.mFontImage = null;
     this.mMinion = null;
+    this.mSpriteSheet = null;
 
     this.mTextSysFont = null;
     this.mTextCon16 = null;
@@ -46,6 +48,7 @@ MyGame.prototype.loadScene = function () {
     // Step A: loads the textures    
     gEngine.Textures.loadTexture(this.kFontImage);
     gEngine.Textures.loadTexture(this.kMinionSprite);
+    gEngine.Textures.loadTexture(this.kBound);
 
     // Step B: loads all the fonts
     gEngine.Fonts.loadFont(this.kFontCon16);
@@ -58,6 +61,7 @@ MyGame.prototype.loadScene = function () {
 MyGame.prototype.unloadScene = function () {
     gEngine.Textures.unloadTexture(this.kFontImage);
     gEngine.Textures.unloadTexture(this.kMinionSprite);
+    gEngine.Textures.unloadTexture(this.kBound);
 
     // unload the fonts
     gEngine.Fonts.unloadFont(this.kFontCon16);
@@ -97,39 +101,44 @@ MyGame.prototype.initialize = function () {
                                     5,          // number of elements in this sequence
                                     0);         // horizontal padding in between
     this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
-    this.mMinion.setAnimationSpeed(15);
+    this.mMinion.setAnimationSpeed(5);
                                 // show each element for mAnimSpeed updates
+                                
+    // Sprite Sheet
+    this.mSpriteSheet = new SpriteSource(this.kMinionSprite);
+    this.mSpriteSheet.getXform().setPosition(70,30);
+    this.mSpriteSheet.getXform().setSize(60, 40);
 
     // Step D: Create the hero object with texture from the lower-left corner 
-    this.mHero = new SpriteRenderable(this.kMinionSprite);
-    this.mHero.setColor([1, 1, 1, 0]);
-    this.mHero.getXform().setPosition(35, 50);
-    this.mHero.getXform().setSize(12, 18);
-    this.mHero.setElementPixelPositions(0, 120, 0, 180);
+    this.mBound = new SpriteRenderable(this.kBound);
+    this.mBound.setColor([1, 1, 1, 0]);
+    this.mBound.getXform().setPosition(70, 30);
+    this.mBound.getXform().setSize(10, 10);
+    this.mBound.setElementPixelPositions(0, 512, 0, 512);
 
     //<editor-fold desc="Create the fonts!">
-    this.mTextSysFont = new FontRenderable("System Font: in Red");
-    this._initText(this.mTextSysFont, 50, 60, [1, 0, 0, 1], 3);
+//    this.mTextSysFont = new FontRenderable("System Font: in Red");
+//    this._initText(this.mTextSysFont, 50, 60, [1, 0, 0, 1], 3);
 
     this.mTextCon16 = new FontRenderable("Consolas 16: in black");
     this.mTextCon16.setFont(this.kFontCon16);
-    this._initText(this.mTextCon16, 50, 55, [0, 0, 0, 1], 2);
+    this._initText(this.mTextCon16, 40, 2, [0, 0, 0, 1], 2);
 
-    this.mTextCon24 = new FontRenderable("Consolas 24: in black");
-    this.mTextCon24.setFont(this.kFontCon24);
-    this._initText(this.mTextCon24, 50, 50, [0, 0, 0, 1], 3);
-
-    this.mTextCon32 = new FontRenderable("Consolas 32: in white");
-    this.mTextCon32.setFont(this.kFontCon32);
-    this._initText(this.mTextCon32, 40, 40, [1, 1, 1, 1], 4);
-
-    this.mTextCon72 = new FontRenderable("Consolas 72: in blue");
-    this.mTextCon72.setFont(this.kFontCon72);
-    this._initText(this.mTextCon72, 30, 30, [0, 0, 1, 1], 6);
-
-    this.mTextSeg96  = new FontRenderable("Segment7-92");
-    this.mTextSeg96.setFont(this.kFontSeg96);
-    this._initText(this.mTextSeg96, 30, 15, [1, 1, 0, 1], 7);
+//    this.mTextCon24 = new FontRenderable("Consolas 24: in black");
+//    this.mTextCon24.setFont(this.kFontCon24);
+//    this._initText(this.mTextCon24, 50, 50, [0, 0, 0, 1], 3);
+//
+//    this.mTextCon32 = new FontRenderable("Consolas 32: in white");
+//    this.mTextCon32.setFont(this.kFontCon32);
+//    this._initText(this.mTextCon32, 40, 40, [1, 1, 1, 1], 4);
+//
+//    this.mTextCon72 = new FontRenderable("Consolas 72: in blue");
+//    this.mTextCon72.setFont(this.kFontCon72);
+//    this._initText(this.mTextCon72, 30, 30, [0, 0, 1, 1], 6);
+//
+//    this.mTextSeg96  = new FontRenderable("Segment7-92");
+//    this.mTextSeg96.setFont(this.kFontSeg96);
+//    this._initText(this.mTextSeg96, 30, 15, [1, 1, 0, 1], 7);
     //</editor-fold>
 
     this.mTextToWork = this.mTextCon16;
@@ -151,17 +160,18 @@ MyGame.prototype.draw = function () {
     this.mCamera.setupViewProjection();
 
     // Step  C: Draw everything
-    this.mHero.draw(this.mCamera.getVPMatrix());
+    this.mSpriteSheet.draw(this.mCamera.getVPMatrix());
+    this.mBound.draw(this.mCamera.getVPMatrix());
     this.mFontImage.draw(this.mCamera.getVPMatrix());
     this.mMinion.draw(this.mCamera.getVPMatrix());
 
     // drawing the text output
-    this.mTextSysFont.draw(this.mCamera.getVPMatrix());
+    // this.mTextSysFont.draw(this.mCamera.getVPMatrix());
     this.mTextCon16.draw(this.mCamera.getVPMatrix());
-    this.mTextCon24.draw(this.mCamera.getVPMatrix());
-    this.mTextCon32.draw(this.mCamera.getVPMatrix());
-    this.mTextCon72.draw(this.mCamera.getVPMatrix());
-    this.mTextSeg96.draw(this.mCamera.getVPMatrix());
+    // this.mTextCon24.draw(this.mCamera.getVPMatrix());
+    // this.mTextCon32.draw(this.mCamera.getVPMatrix());
+    // this.mTextCon72.draw(this.mCamera.getVPMatrix());
+    // this.mTextSeg96.draw(this.mCamera.getVPMatrix());
 };
 
 // The 
@@ -172,22 +182,65 @@ MyGame.prototype.update = function () {
     // and if hero moves too far off, this level ends, we will
     // load the next level
     var deltaX = 0.5;
-    var xform = this.mHero.getXform();
+    var deltaSize = 1;
+    var xform = this.mBound.getXform();
 
-    // Support hero movements
-    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Right)) {
-        xform.incXPosBy(deltaX);
-        if (xform.getXPos() > 100) { // this is the right-bound of the window
-            xform.setPosition(0, 50);
+    // Space
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Space)) {
+        deltaX *= .01;
+        deltaSize *= .01;
+    }
+    
+    // Support Bound movements
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.W)) {
+        if (xform.getYPos() < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2 - xform.getHeight() / 2) {  // this is the left-bound of the window
+            xform.incYPosBy(deltaX);
+        }
+    }
+    
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.S)) {
+        if (xform.getYPos() > 0) {  // this is the left-bound of the window
+            xform.incYPosBy(-deltaX);
+        }
+    }
+    
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.D)) {
+        if (xform.getXPos() < 100) { // this is the right-bound of the window
+            xform.incXPosBy(deltaX);
         }
     }
 
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.A)) {
+        if (xform.getXPos() > 0) {  // this is the left-bound of the window
+            xform.incXPosBy(-deltaX);
+        }
+    }
+    
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
+        if (xform.getHeight() < 100) {
+            xform.incHeightBy(deltaSize);
+        }
+    }
+    
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Down)) {
+        if (xform.getHeight() > 1) {
+            xform.incHeightBy(-deltaSize);
+        }
+    }
+    
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Left)) {
-        xform.incXPosBy(-deltaX);
-        if (xform.getXPos() < 0) {  // this is the left-bound of the window
-            gEngine.GameLoop.stop();
+        if (xform.getWidth() < 100) {
+            xform.incWidthBy(deltaSize);
         }
     }
+    
+    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Right)) {
+        if ( xform.getWidth() > 1) {
+            xform.incWidthBy(-deltaSize);
+        }
+    }
+    
+    
 
     // New update code for changing the sub-texture regions being shown"
     var deltaT = 0.001;
@@ -223,37 +276,37 @@ MyGame.prototype.update = function () {
     // interactive control of the display size
 
     // choose which text to work on
-    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Zero)) {
-        this.mTextToWork = this.mTextCon16;
-    }
-    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.One)) {
-        this.mTextToWork = this.mTextCon24;
-    }
-    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Three)) {
-        this.mTextToWork = this.mTextCon32;
-    }
-    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Four)) {
-        this.mTextToWork = this.mTextCon72;
-    }
+//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Zero)) {
+//        this.mTextToWork = this.mTextCon16;
+//    }
+//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.One)) {
+//        this.mTextToWork = this.mTextCon24;
+//    }
+//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Three)) {
+//        this.mTextToWork = this.mTextCon32;
+//    }
+//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Four)) {
+//        this.mTextToWork = this.mTextCon72;
+//    }
 
-    var deltaF = 0.005;
-    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
-        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
-            this.mTextToWork.getXform().incWidthBy(deltaF);
-        }
-        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
-            this.mTextToWork.getXform().incHeightBy(deltaF);
-        }
-        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
-    }
-
-    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Down)) {
-        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
-            this.mTextToWork.getXform().incWidthBy(-deltaF);
-        }
-        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
-            this.mTextToWork.getXform().incHeightBy(-deltaF);
-        }
-        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
-    }
+//    var deltaF = 0.005;
+//    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
+//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
+//            this.mTextToWork.getXform().incWidthBy(deltaF);
+//        }
+//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
+//            this.mTextToWork.getXform().incHeightBy(deltaF);
+//        }
+//        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
+//    }
+//
+//    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Down)) {
+//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
+//            this.mTextToWork.getXform().incWidthBy(-deltaF);
+//        }
+//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
+//            this.mTextToWork.getXform().incHeightBy(-deltaF);
+//        }
+//        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
+//    }
 };
