@@ -117,10 +117,30 @@ MyGame.prototype.initialize = function () {
     this.mBound.getXform().setSize(10, 10);
     this.mBound.setElementPixelPositions(0, 512, 0, 512);
 
-    // font
+    //<editor-fold desc="Create the fonts!">
+//    this.mTextSysFont = new FontRenderable("System Font: in Red");
+//    this._initText(this.mTextSysFont, 50, 60, [1, 0, 0, 1], 3);
+
     this.mTextCon16 = new FontRenderable("Consolas 16: in black");
     this.mTextCon16.setFont(this.kFontCon16);
     this._initText(this.mTextCon16, 40, 2, [0, 0, 0, 1], 2);
+
+//    this.mTextCon24 = new FontRenderable("Consolas 24: in black");
+//    this.mTextCon24.setFont(this.kFontCon24);
+//    this._initText(this.mTextCon24, 50, 50, [0, 0, 0, 1], 3);
+//
+//    this.mTextCon32 = new FontRenderable("Consolas 32: in white");
+//    this.mTextCon32.setFont(this.kFontCon32);
+//    this._initText(this.mTextCon32, 40, 40, [1, 1, 1, 1], 4);
+//
+//    this.mTextCon72 = new FontRenderable("Consolas 72: in blue");
+//    this.mTextCon72.setFont(this.kFontCon72);
+//    this._initText(this.mTextCon72, 30, 30, [0, 0, 1, 1], 6);
+//
+//    this.mTextSeg96  = new FontRenderable("Segment7-92");
+//    this.mTextSeg96.setFont(this.kFontSeg96);
+//    this._initText(this.mTextSeg96, 30, 15, [1, 1, 0, 1], 7);
+    //</editor-fold>
 
     this.mTextToWork = this.mTextCon16;
 };
