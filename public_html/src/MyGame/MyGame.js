@@ -16,7 +16,6 @@ function MyGame() {
     this.kFontImage = "assets/Consolas-72.png";
     this.kMinionSprite = "assets/minion_sprite.png";
     this.kBound = "assets/Bound.png";
-    
 
     // the fonts
     this.kFontCon16 = "assets/fonts/Consolas-16";  // notice font names do not need extensions!
@@ -104,13 +103,13 @@ MyGame.prototype.initialize = function () {
     this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
     this.mMinion.setAnimationSpeed(5);
                                 // show each element for mAnimSpeed updates
-
+                                
     // Sprite Sheet
     this.mSpriteSheet = new SpriteSource(this.kMinionSprite);
     this.mSpriteSheet.getXform().setPosition(70,30);
     this.mSpriteSheet.getXform().setSize(60, 40);
 
-    // Step D: Create the hero object with texture from the lower-left corner
+    // Step D: Create the hero object with texture from the lower-left corner 
     this.mBound = new SpriteRenderable(this.kBound);
     this.mBound.setColor([1, 1, 1, 0]);
     this.mBound.getXform().setPosition(70, 30);
@@ -172,27 +171,27 @@ MyGame.prototype.update = function () {
         deltaSize *= .01;
     }
     
-    // Support Bound movements TODO: rest of bounds
+    // Support Bound movements
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.W)) {
-        if (xform.getYPos() < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2 - xform.getHeight() / 2) {
+        if (xform.getYPos() < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2 - xform.getHeight() / 2) {  // this is the left-bound of the window
             xform.incYPosBy(deltaX);
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.S)) {
-        if (xform.getYPos() > this.mSpriteSheet.getXform().getYPos() - this.mSpriteSheet.getXform().getHeight() / 2 + xform.getHeight() / 2) {
+        if (xform.getYPos() > 0) {  // this is the left-bound of the window
             xform.incYPosBy(-deltaX);
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.D)) {
-        if (xform.getXPos() < this.mSpriteSheet.getXform().getXPos() + this.mSpriteSheet.getXform().getWidth() / 2 - xform.getWidth() / 2) {
+        if (xform.getXPos() < 100) { // this is the right-bound of the window
             xform.incXPosBy(deltaX);
         }
     }
 
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.A)) {
-        if (xform.getXPos() > this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2 + xform.getWidth() / 2) {
+        if (xform.getXPos() > 0) {  // this is the left-bound of the window
             xform.incXPosBy(-deltaX);
         }
     }
