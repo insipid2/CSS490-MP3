@@ -257,24 +257,32 @@ MyGame.prototype.update = function () {
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
         if (xform.getHeight() < 100) {
             xform.incHeightBy(deltaSize);
+            this.mBoundMarks[1].getXform().incYPosBy(-deltaX);
+            this.mBoundMarks[3].getXform().incYPosBy(deltaX);
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Down)) {
         if (xform.getHeight() > 1) {
             xform.incHeightBy(-deltaSize);
+            this.mBoundMarks[1].getXform().incYPosBy(deltaX);
+            this.mBoundMarks[3].getXform().incYPosBy(-deltaX);
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Left)) {
         if (xform.getWidth() < 100) {
             xform.incWidthBy(deltaSize);
+            this.mBoundMarks[0].getXform().incXPosBy(deltaX);
+            this.mBoundMarks[2].getXform().incXPosBy(-deltaX);
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Right)) {
         if ( xform.getWidth() > 1) {
             xform.incWidthBy(-deltaSize);
+            this.mBoundMarks[0].getXform().incXPosBy(-deltaX);
+            this.mBoundMarks[2].getXform().incXPosBy(deltaX);
         }
     }
     
