@@ -30,9 +30,11 @@ function MyGame() {
 
     // the hero and the support objects
     this.mBound = null;
+    this.mBoundMarks = [];
     this.mFontImage = null;
     this.mMinion = null;
     this.mSpriteSheet = null;
+    this.mSpriteSheetMarks = [];
 
     this.mTextSysFont = null;
     this.mTextCon16 = null;
@@ -110,13 +112,32 @@ MyGame.prototype.initialize = function () {
     this.mSpriteSheet.getXform().setPosition(70,30);
     this.mSpriteSheet.getXform().setSize(60, 40);
 
-    // Step D: Create the hero object with texture from the lower-left corner
+    // Step D: Create the Interactive Bound
     this.mBound = new SpriteRenderable(this.kBound);
     this.mBound.setColor([1, 1, 1, 0]);
     this.mBound.getXform().setPosition(70, 30);
     this.mBound.getXform().setSize(10, 10);
     this.mBound.setElementPixelPositions(0, 512, 0, 512);
-
+    this.mBoundMarks.push(new Renderable());
+    this.mBoundMarks.push(new Renderable());
+    this.mBoundMarks.push(new Renderable());
+    this.mBoundMarks.push(new Renderable());
+    // right square
+    this.mBoundMarks[0].getXform().setPosition(75, 30);
+    this.mBoundMarks[0].getXform().setSize(1, 1);
+    this.mBoundMarks[0].setColor([1, 0, 0, 1]);
+    // bottom square
+    this.mBoundMarks[1].getXform().setPosition(70, 25);
+    this.mBoundMarks[1].getXform().setSize(1, 1);
+    this.mBoundMarks[1].setColor([0, 1, 0, 1]);
+    // left square
+    this.mBoundMarks[2].getXform().setPosition(65, 30);
+    this.mBoundMarks[2].getXform().setSize(1, 1);
+    this.mBoundMarks[2].setColor([0, 0, 1, 1]);
+    // top square
+    this.mBoundMarks[3].getXform().setPosition(70, 35);
+    this.mBoundMarks[3].getXform().setSize(1, 1);
+    this.mBoundMarks[3].setColor([1, 0, 1, 1]);
     //<editor-fold desc="Create the fonts!">
 //    this.mTextSysFont = new FontRenderable("System Font: in Red");
 //    this._initText(this.mTextSysFont, 50, 60, [1, 0, 0, 1], 3);
@@ -163,6 +184,10 @@ MyGame.prototype.draw = function () {
     // Step  C: Draw everything
     this.mSpriteSheet.draw(this.mCamera.getVPMatrix());
     this.mBound.draw(this.mCamera.getVPMatrix());
+    this.mBoundMarks[0].draw(this.mCamera.getVPMatrix());
+    this.mBoundMarks[1].draw(this.mCamera.getVPMatrix());
+    this.mBoundMarks[2].draw(this.mCamera.getVPMatrix());
+    this.mBoundMarks[3].draw(this.mCamera.getVPMatrix());
     this.mFontImage.draw(this.mCamera.getVPMatrix());
     this.mMinion.draw(this.mCamera.getVPMatrix());
 
@@ -196,24 +221,36 @@ MyGame.prototype.update = function () {
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.W)) {
         if (xform.getYPos() < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2 - xform.getHeight() / 2) {
             xform.incYPosBy(deltaX);
+            for (var i = 0; i < 4; i++) {
+                this.mBoundMarks[i].getXform().incYPosBy(deltaX);
+            }
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.S)) {
         if (xform.getYPos() > this.mSpriteSheet.getXform().getYPos() - this.mSpriteSheet.getXform().getHeight() / 2 + xform.getHeight() / 2) {
             xform.incYPosBy(-deltaX);
+            for (var i = 0; i < 4; i++) {
+                this.mBoundMarks[i].getXform().incYPosBy(-deltaX);
+            }
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.D)) {
         if (xform.getXPos() < this.mSpriteSheet.getXform().getXPos() + this.mSpriteSheet.getXform().getWidth() / 2 - xform.getWidth() / 2) {
             xform.incXPosBy(deltaX);
+            for (var i = 0; i < 4; i++) {
+                this.mBoundMarks[i].getXform().incXPosBy(deltaX);
+            }
         }
     }
 
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.A)) {
         if (xform.getXPos() > this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2 + xform.getWidth() / 2) {
             xform.incXPosBy(-deltaX);
+            for (var i = 0; i < 4; i++) {
+                this.mBoundMarks[i].getXform().incXPosBy(-deltaX);
+            }
         }
     }
     
