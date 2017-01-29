@@ -25,8 +25,10 @@ function MyGame() {
     this.kFontCon72 = "assets/fonts/Consolas-72";
     this.kFontSeg96 = "assets/fonts/Segment7-96";
 
-    // The camera to view the scene
-    this.mCamera = null;
+    // Cameras for the 3 scenes
+    this.mCameraMain = null;
+    this.mCameraAnimation = null;
+    this.mCameraZoomed = null;
 
     // the hero and the support objects
     this.mBound = null;
@@ -80,13 +82,26 @@ MyGame.prototype.unloadScene = function () {
 
 MyGame.prototype.initialize = function () {
     // Step A: set up the cameras
-    this.mCamera = new Camera(
+    this.mCameraMain = new Camera(
         vec2.fromValues(50, 33),   // position of the camera
         100,                       // width of camera
-        [0, 0, 600, 400]           // viewport (orgX, orgY, width, height)
+        [192, 0, 448, 480]           // viewport (orgX, orgY, width, height)
     );
-    this.mCamera.setBackgroundColor([0.8, 0.8, 0.8, 1]);
-            // sets the background to gray
+    this.mCameraMain.setBackgroundColor([0.8, 0.8, 0.8, 1]);
+
+    this.mCameraAnimation = new Camera(
+        vec2.fromValues(0, 0),
+        100,
+        [0, 290, 190, 190]
+    );
+    this.mCameraAnimation.setBackgroundColor([0.7, 0.9, 0.7, 1]);
+    
+    this.mCameraZoomed = new Camera(
+        vec2.fromValues(0, 0),
+        100,
+        [0, 0, 192, 288]
+    );
+    this.mCameraZoomed.setBackgroundColor([0.7, 0.7, 0.7, 1]);
 
     // Step B: Create the font and minion images using sprite
     this.mFontImage = new SpriteRenderable(this.kFontImage);
@@ -176,28 +191,31 @@ MyGame.prototype._initText = function (font, posX, posY, color, textH) {
 // importantly, make sure to _NOT_ change any state.
 MyGame.prototype.draw = function () {
     // Step A: clear the canvas
-    gEngine.Core.clearCanvas([0.9, 0.9, 0.9, 1.0]); // clear to light gray
+    gEngine.Core.clearCanvas([1, 1, 1, 1]);
 
-    // Step  B: Activate the drawing Camera
-    this.mCamera.setupViewProjection();
+    // Step  B: Activate the main Camera
+    this.mCameraMain.setupViewProjection();
 
     // Step  C: Draw everything
-    this.mSpriteSheet.draw(this.mCamera.getVPMatrix());
-    this.mBound.draw(this.mCamera.getVPMatrix());
-    this.mBoundMarks[0].draw(this.mCamera.getVPMatrix());
-    this.mBoundMarks[1].draw(this.mCamera.getVPMatrix());
-    this.mBoundMarks[2].draw(this.mCamera.getVPMatrix());
-    this.mBoundMarks[3].draw(this.mCamera.getVPMatrix());
-    this.mFontImage.draw(this.mCamera.getVPMatrix());
-    this.mMinion.draw(this.mCamera.getVPMatrix());
+    this.mSpriteSheet.draw(this.mCameraMain.getVPMatrix());
+    this.mBound.draw(this.mCameraMain.getVPMatrix());
+    this.mBoundMarks[0].draw(this.mCameraMain.getVPMatrix());
+    this.mBoundMarks[1].draw(this.mCameraMain.getVPMatrix());
+    this.mBoundMarks[2].draw(this.mCameraMain.getVPMatrix());
+    this.mBoundMarks[3].draw(this.mCameraMain.getVPMatrix());
+    this.mFontImage.draw(this.mCameraMain.getVPMatrix());
+    this.mMinion.draw(this.mCameraMain.getVPMatrix());
 
     // drawing the text output
-    // this.mTextSysFont.draw(this.mCamera.getVPMatrix());
-    this.mTextCon16.draw(this.mCamera.getVPMatrix());
-    // this.mTextCon24.draw(this.mCamera.getVPMatrix());
-    // this.mTextCon32.draw(this.mCamera.getVPMatrix());
-    // this.mTextCon72.draw(this.mCamera.getVPMatrix());
-    // this.mTextSeg96.draw(this.mCamera.getVPMatrix());
+    // this.mTextSysFont.draw(this.mCameraMain.getVPMatrix());
+    this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
+    // this.mTextCon24.draw(this.mCameraMain.getVPMatrix());
+    // this.mTextCon32.draw(this.mCameraMain.getVPMatrix());
+    // this.mTextCon72.draw(this.mCameraMain.getVPMatrix());
+    // this.mTextSeg96.draw(this.mCameraMain.getVPMatrix());
+    
+    this.mCameraAnimation.setupViewProjection();
+    this.mCameraZoomed.setupViewProjection();
 };
 
 // The 
