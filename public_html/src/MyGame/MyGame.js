@@ -28,10 +28,12 @@ function MyGame() {
     // Cameras for the 3 scenes
     this.mCameraMain = null;
     this.mCameraAnimation = null;
-    this.mCameraZoomed = null;
+    // 0 = right, 1 = bottom, 2 = left, 3 = top
+    this.mCamerasZoomed = [];
 
     // the hero and the support objects
     this.mBound = null;
+    // 0 = right, 1 = bottom, 2 = left, 3 = top
     this.mBoundMarks = [];
     this.mFontImage = null;
     this.mMinion = null;
@@ -96,12 +98,26 @@ MyGame.prototype.initialize = function () {
     );
     this.mCameraAnimation.setBackgroundColor([0.7, 0.9, 0.7, 1]);
     
-    this.mCameraZoomed = new Camera(
-        vec2.fromValues(0, 0),
-        100,
-        [0, 0, 192, 288]
-    );
-    this.mCameraZoomed.setBackgroundColor([0.7, 0.7, 0.7, 1]);
+    // create the 4 zoomed cameras
+    for (var i = 0; i < 4; i++) {
+        this.mCamerasZoomed[i] = new Camera(
+            vec2.fromValues(70, 30),
+            5,
+            [0, 0, 0, 0]
+        );
+    }
+    // right zoomed
+    this.mCamerasZoomed[0].setWCCenter(75, 30);
+    this.mCamerasZoomed[0].setViewport([96, 96, 96, 96]);
+    // bottom zoomed
+    this.mCamerasZoomed[1].setWCCenter(70, 25);
+    this.mCamerasZoomed[1].setViewport([48, 0, 96, 96]);
+    // left zoomed
+    this.mCamerasZoomed[2].setWCCenter(65, 30);
+    this.mCamerasZoomed[2].setViewport([0, 96, 96, 96]);
+    // top zoomed
+    this.mCamerasZoomed[3].setWCCenter(70, 35);
+    this.mCamerasZoomed[3].setViewport([48, 192, 96, 96]);
 
     // Step B: Create the font and minion images using sprite
     this.mFontImage = new SpriteRenderable(this.kFontImage);
@@ -224,19 +240,23 @@ MyGame.prototype.draw = function () {
         this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
     }
     
-    this.mFontImage.draw(this.mCameraMain.getVPMatrix());
-    this.mMinion.draw(this.mCameraMain.getVPMatrix());
-
-    // drawing the text output
-    // this.mTextSysFont.draw(this.mCameraMain.getVPMatrix());
     this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
-    // this.mTextCon24.draw(this.mCameraMain.getVPMatrix());
-    // this.mTextCon32.draw(this.mCameraMain.getVPMatrix());
-    // this.mTextCon72.draw(this.mCameraMain.getVPMatrix());
-    // this.mTextSeg96.draw(this.mCameraMain.getVPMatrix());
     
     this.mCameraAnimation.setupViewProjection();
-    this.mCameraZoomed.setupViewProjection();
+    
+    // draw again for each zoomed camera
+    for (var i = 0; i < 4; i++) {
+        console.log("Camera: " + i);
+        this.mCamerasZoomed[i].setupViewProjection();
+        this.mSpriteSheet.draw(this.mCamerasZoomed[i].getVPMatrix());
+        this.mBound.draw(this.mCamerasZoomed[i].getVPMatrix());
+        for (var j = 0; j < 4; j++) {
+            console.log("Square: " + j);
+            this.mBoundMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
+            this.mSpriteSheetMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
+        }
+    }
+    
 };
 
 // The 
