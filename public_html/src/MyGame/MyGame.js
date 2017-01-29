@@ -126,6 +126,26 @@ MyGame.prototype.initialize = function () {
     this.mSpriteSheet = new SpriteSource(this.kMinionSprite);
     this.mSpriteSheet.getXform().setPosition(70,30);
     this.mSpriteSheet.getXform().setSize(60, 40);
+    for (var i = 0; i < 4; i++) {
+        this.mSpriteSheetMarks.push(new Renderable());
+    }
+    
+    // top right square
+    this.mSpriteSheetMarks[0].getXform().setPosition(100, 50);
+    this.mSpriteSheetMarks[0].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[0].setColor([1, 0, 0, 1]);
+    // bottom right square
+    this.mSpriteSheetMarks[1].getXform().setPosition(100, 10);
+    this.mSpriteSheetMarks[1].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[1].setColor([0, 1, 0, 1]);
+    // bottom left square
+    this.mSpriteSheetMarks[2].getXform().setPosition(40, 10);
+    this.mSpriteSheetMarks[2].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[2].setColor([0, 0, 1, 1]);
+    // top left square
+    this.mSpriteSheetMarks[3].getXform().setPosition(40, 50);
+    this.mSpriteSheetMarks[3].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[3].setColor([1, 0, 1, 1]);
 
     // Step D: Create the Interactive Bound
     this.mBound = new SpriteRenderable(this.kBound);
@@ -133,10 +153,10 @@ MyGame.prototype.initialize = function () {
     this.mBound.getXform().setPosition(70, 30);
     this.mBound.getXform().setSize(10, 10);
     this.mBound.setElementPixelPositions(0, 512, 0, 512);
-    this.mBoundMarks.push(new Renderable());
-    this.mBoundMarks.push(new Renderable());
-    this.mBoundMarks.push(new Renderable());
-    this.mBoundMarks.push(new Renderable());
+    for (var i = 0; i < 4; i++) {
+        this.mBoundMarks.push(new Renderable());
+    }
+
     // right square
     this.mBoundMarks[0].getXform().setPosition(75, 30);
     this.mBoundMarks[0].getXform().setSize(1, 1);
@@ -199,10 +219,11 @@ MyGame.prototype.draw = function () {
     // Step  C: Draw everything
     this.mSpriteSheet.draw(this.mCameraMain.getVPMatrix());
     this.mBound.draw(this.mCameraMain.getVPMatrix());
-    this.mBoundMarks[0].draw(this.mCameraMain.getVPMatrix());
-    this.mBoundMarks[1].draw(this.mCameraMain.getVPMatrix());
-    this.mBoundMarks[2].draw(this.mCameraMain.getVPMatrix());
-    this.mBoundMarks[3].draw(this.mCameraMain.getVPMatrix());
+    for (var i = 0; i < 4; i++) {
+        this.mBoundMarks[i].draw(this.mCameraMain.getVPMatrix());
+        this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
+    }
+    
     this.mFontImage.draw(this.mCameraMain.getVPMatrix());
     this.mMinion.draw(this.mCameraMain.getVPMatrix());
 
