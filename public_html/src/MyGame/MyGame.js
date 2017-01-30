@@ -12,13 +12,12 @@
 "use strict";  // Operate in Strict mode such that variables must be declared before used!
 
 function MyGame() {
-    // textures: 
+    // textures
     this.kFontImage = "assets/Consolas-72.png";
     this.kMinionSprite = "assets/minion_sprite.png";
     this.kBound = "assets/Bound.png";
     
-
-    // the fonts
+    // fonts
     this.kFontCon16 = "assets/fonts/Consolas-16";  // notice font names do not need extensions!
     this.kFontCon24 = "assets/fonts/Consolas-24";
     this.kFontCon32 = "assets/fonts/Consolas-32";  // this is also the default system font
@@ -31,23 +30,16 @@ function MyGame() {
     // 0 = right, 1 = bottom, 2 = left, 3 = top
     this.mCamerasZoomed = [];
 
-    // the hero and the support objects
+    // sprite sheet and interactive bound
     this.mBound = null;
     // 0 = right, 1 = bottom, 2 = left, 3 = top
     this.mBoundMarks = [];
-    this.mFontImage = null;
-    this.mMinion = null;
+    // this.mFontImage = null;
+    // this.mMinion = null;
     this.mSpriteSheet = null;
     this.mSpriteSheetMarks = [];
 
-    this.mTextSysFont = null;
     this.mTextCon16 = null;
-    this.mTextCon24 = null;
-    this.mTextCon32 = null;
-    this.mTextCon72 = null;
-    this.mTextSeg96 = null;
-
-    this.mTextToWork = null;
 }
 gEngine.Core.inheritPrototype(MyGame, Scene);
 
@@ -83,87 +75,69 @@ MyGame.prototype.unloadScene = function () {
 };
 
 MyGame.prototype.initialize = function () {
-    // Step A: set up the cameras
-    this.mCameraMain = new Camera(
-        vec2.fromValues(50, 33),   // position of the camera
-        100,                       // width of camera
-        [192, 0, 448, 480]           // viewport (orgX, orgY, width, height)
-    );
-    this.mCameraMain.setBackgroundColor([0.8, 0.8, 0.8, 1]);
-
-    this.mCameraAnimation = new Camera(
-        vec2.fromValues(0, 0),
-        100,
-        [0, 290, 190, 190]
-    );
-    this.mCameraAnimation.setBackgroundColor([0.7, 0.9, 0.7, 1]);
+    // ** Sprite Sheet ** //
+    var spriteImg = gEngine.ResourceMap.retrieveAsset(this.kMinionSprite);
+    var spriteRatio = spriteImg.mWidth / spriteImg.mHeight;
+    var spriteWidth = 0, spriteHeight = 0;
+    var spriteX = 50, spriteY = 50;
+    var borderThickness = 0.2;
+    console.log("Image: " + this.kMinionSprite + ", width, height: " + spriteImg.mWidth + ", " + spriteImg.mHeight);
+    console.log("Aspect Ratio: " + spriteRatio);
     
-    // create the 4 zoomed cameras
-    for (var i = 0; i < 4; i++) {
-        this.mCamerasZoomed[i] = new Camera(
-            vec2.fromValues(70, 30),
-            5,
-            [0, 0, 0, 0]
-        );
-    }
-    // right zoomed
-    this.mCamerasZoomed[0].setWCCenter(75, 30);
-    this.mCamerasZoomed[0].setViewport([96, 96, 96, 96]);
-    // bottom zoomed
-    this.mCamerasZoomed[1].setWCCenter(70, 25);
-    this.mCamerasZoomed[1].setViewport([48, 0, 96, 96]);
-    // left zoomed
-    this.mCamerasZoomed[2].setWCCenter(65, 30);
-    this.mCamerasZoomed[2].setViewport([0, 96, 96, 96]);
-    // top zoomed
-    this.mCamerasZoomed[3].setWCCenter(70, 35);
-    this.mCamerasZoomed[3].setViewport([48, 192, 96, 96]);
-
-    // Step B: Create the font and minion images using sprite
-    this.mFontImage = new SpriteRenderable(this.kFontImage);
-    this.mFontImage.setColor([1, 1, 1, 0]);
-    this.mFontImage.getXform().setPosition(15, 50);
-    this.mFontImage.getXform().setSize(20, 20);
-
-    // The right minion
-    this.mMinion = new SpriteAnimateRenderable(this.kMinionSprite);
-    this.mMinion.setColor([1, 1, 1, 0]);
-    this.mMinion.getXform().setPosition(15, 25);
-    this.mMinion.getXform().setSize(24, 19.2);
-    this.mMinion.setSpriteSequence(512, 0,     // first element pixel position: top-left 512 is top of image, 0 is left of image
-                                    204, 164,    // widthxheight in pixels
-                                    5,          // number of elements in this sequence
-                                    0);         // horizontal padding in between
-    this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
-    this.mMinion.setAnimationSpeed(5);
-                                // show each element for mAnimSpeed updates
-
-    // Sprite Sheet
     this.mSpriteSheet = new SpriteSource(this.kMinionSprite);
-    this.mSpriteSheet.getXform().setPosition(70,30);
-    this.mSpriteSheet.getXform().setSize(60, 40);
-    for (var i = 0; i < 4; i++) {
+    var spriteXform = this.mSpriteSheet.getXform();
+    spriteXform.setPosition(spriteX,spriteY);
+    
+    // test for whether width or height is larger
+    if (spriteRatio >= 1) {
+        // Wider or 1:1
+        spriteWidth = 100;
+        spriteHeight = spriteWidth / spriteRatio;
+    }
+    else {
+        spriteHeight = 100;
+        spriteWidth = spriteHeight * spriteRatio;
+    }
+    spriteXform.setSize(spriteWidth, spriteHeight);
+    for (var i = 0; i < 8; i++) {
         this.mSpriteSheetMarks.push(new Renderable());
     }
     
+    
+    // right border
+    this.mSpriteSheetMarks[0].getXform().setPosition(spriteX + spriteWidth / 2, spriteY);
+    this.mSpriteSheetMarks[0].getXform().setSize(borderThickness, spriteHeight);
+    this.mSpriteSheetMarks[0].setColor([0, 0, 0, 1]);
+    // bottom border
+    this.mSpriteSheetMarks[1].getXform().setPosition(spriteX, spriteY - spriteHeight / 2);
+    this.mSpriteSheetMarks[1].getXform().setSize(spriteWidth, borderThickness);
+    this.mSpriteSheetMarks[1].setColor([0, 0, 0, 1]);
+    // left border
+    this.mSpriteSheetMarks[2].getXform().setPosition(spriteX - spriteWidth / 2, spriteY);
+    this.mSpriteSheetMarks[2].getXform().setSize(borderThickness, spriteHeight);
+    this.mSpriteSheetMarks[2].setColor([0, 0, 0, 1]);
+    // top border
+    this.mSpriteSheetMarks[3].getXform().setPosition(spriteX, spriteY + spriteHeight / 2);
+    this.mSpriteSheetMarks[3].getXform().setSize(spriteWidth, borderThickness);
+    this.mSpriteSheetMarks[3].setColor([0, 0, 0, 1]);
     // top right square
-    this.mSpriteSheetMarks[0].getXform().setPosition(100, 50);
-    this.mSpriteSheetMarks[0].getXform().setSize(3, 3);
-    this.mSpriteSheetMarks[0].setColor([1, 0, 0, 1]);
+    this.mSpriteSheetMarks[4].getXform().setPosition(spriteX + spriteWidth / 2, spriteY + spriteHeight / 2);
+    this.mSpriteSheetMarks[4].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[4].setColor([1, 0, 0, 1]);
     // bottom right square
-    this.mSpriteSheetMarks[1].getXform().setPosition(100, 10);
-    this.mSpriteSheetMarks[1].getXform().setSize(3, 3);
-    this.mSpriteSheetMarks[1].setColor([0, 1, 0, 1]);
+    this.mSpriteSheetMarks[5].getXform().setPosition(spriteX + spriteWidth / 2, spriteY - spriteHeight / 2);
+    this.mSpriteSheetMarks[5].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[5].setColor([0, 1, 0, 1]);
     // bottom left square
-    this.mSpriteSheetMarks[2].getXform().setPosition(40, 10);
-    this.mSpriteSheetMarks[2].getXform().setSize(3, 3);
-    this.mSpriteSheetMarks[2].setColor([0, 0, 1, 1]);
+    this.mSpriteSheetMarks[6].getXform().setPosition(spriteX - spriteWidth / 2, spriteY - spriteHeight / 2);
+    this.mSpriteSheetMarks[6].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[6].setColor([0, 0, 1, 1]);
     // top left square
-    this.mSpriteSheetMarks[3].getXform().setPosition(40, 50);
-    this.mSpriteSheetMarks[3].getXform().setSize(3, 3);
-    this.mSpriteSheetMarks[3].setColor([1, 0, 1, 1]);
-
-    // Step D: Create the Interactive Bound
+    this.mSpriteSheetMarks[7].getXform().setPosition(spriteX - spriteWidth / 2, spriteY + spriteHeight / 2);
+    this.mSpriteSheetMarks[7].getXform().setSize(3, 3);
+    this.mSpriteSheetMarks[7].setColor([1, 0, 1, 1]);
+    
+    // ** Interactive Bound ** //
     this.mBound = new SpriteRenderable(this.kBound);
     this.mBound.setColor([1, 1, 1, 0]);
     this.mBound.getXform().setPosition(70, 30);
@@ -189,30 +163,67 @@ MyGame.prototype.initialize = function () {
     this.mBoundMarks[3].getXform().setPosition(70, 35);
     this.mBoundMarks[3].getXform().setSize(1, 1);
     this.mBoundMarks[3].setColor([1, 0, 1, 1]);
-    //<editor-fold desc="Create the fonts!">
-//    this.mTextSysFont = new FontRenderable("System Font: in Red");
-//    this._initText(this.mTextSysFont, 50, 60, [1, 0, 0, 1], 3);
+    
+    // ** Cameras ** //
+    this.mCameraMain = new Camera(
+        vec2.fromValues(50, 50),   // position of the camera
+        110,                       // width of camera
+        [192, 0, 448, 480]           // viewport (orgX, orgY, width, height)
+    );
+    this.mCameraMain.setBackgroundColor([0.8, 0.8, 0.8, 1]);
 
+    this.mCameraAnimation = new Camera(
+        vec2.fromValues(0, 0),
+        100,
+        [0, 290, 190, 190]
+    );
+    this.mCameraAnimation.setBackgroundColor([0.7, 0.9, 0.7, 1]);
+    
+    // create the 4 zoomed cameras
+    for (var i = 0; i < 4; i++) {
+        this.mCamerasZoomed[i] = new Camera(
+            vec2.fromValues(70, 30),
+            5,
+            [0, 0, 0, 0]
+        );
+        this.mCamerasZoomed[i].setBackgroundColor([1, 1, 1, 1]);
+    }
+    // right zoomed
+    this.mCamerasZoomed[0].setWCCenter(75, 30);
+    this.mCamerasZoomed[0].setViewport([96, 96, 96, 96]);
+    // bottom zoomed
+    this.mCamerasZoomed[1].setWCCenter(70, 25);
+    this.mCamerasZoomed[1].setViewport([48, 0, 96, 96]);
+    // left zoomed
+    this.mCamerasZoomed[2].setWCCenter(65, 30);
+    this.mCamerasZoomed[2].setViewport([0, 96, 96, 96]);
+    // top zoomed
+    this.mCamerasZoomed[3].setWCCenter(70, 35);
+    this.mCamerasZoomed[3].setViewport([48, 192, 96, 96]);
+
+    // ** Status text ** //
     this.mTextCon16 = new FontRenderable("Consolas 16: in black");
     this.mTextCon16.setFont(this.kFontCon16);
     this._initText(this.mTextCon16, 40, 2, [0, 0, 0, 1], 2);
 
-//    this.mTextCon24 = new FontRenderable("Consolas 24: in black");
-//    this.mTextCon24.setFont(this.kFontCon24);
-//    this._initText(this.mTextCon24, 50, 50, [0, 0, 0, 1], 3);
+    
+//    // Font image zoom
+//    this.mFontImage = new SpriteRenderable(this.kFontImage);
+//    this.mFontImage.setColor([1, 1, 1, 0]);
+//    this.mFontImage.getXform().setPosition(15, 50);
+//    this.mFontImage.getXform().setSize(20, 20);
 //
-//    this.mTextCon32 = new FontRenderable("Consolas 32: in white");
-//    this.mTextCon32.setFont(this.kFontCon32);
-//    this._initText(this.mTextCon32, 40, 40, [1, 1, 1, 1], 4);
-//
-//    this.mTextCon72 = new FontRenderable("Consolas 72: in blue");
-//    this.mTextCon72.setFont(this.kFontCon72);
-//    this._initText(this.mTextCon72, 30, 30, [0, 0, 1, 1], 6);
-//
-//    this.mTextSeg96  = new FontRenderable("Segment7-92");
-//    this.mTextSeg96.setFont(this.kFontSeg96);
-//    this._initText(this.mTextSeg96, 30, 15, [1, 1, 0, 1], 7);
-    //</editor-fold>
+//    // Minion animation
+//    this.mMinion = new SpriteAnimateRenderable(this.kMinionSprite);
+//    this.mMinion.setColor([1, 1, 1, 0]);
+//    this.mMinion.getXform().setPosition(15, 25);
+//    this.mMinion.getXform().setSize(24, 19.2);
+//    this.mMinion.setSpriteSequence(512, 0,     // first element pixel position: top-left 512 is top of image, 0 is left of image
+//                                    204, 164,    // widthxheight in pixels
+//                                    5,          // number of elements in this sequence
+//                                    0);         // horizontal padding in between
+//    this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
+//    this.mMinion.setAnimationSpeed(5); // show each element for mAnimSpeed updates
 
     this.mTextToWork = this.mTextCon16;
 };
@@ -227,7 +238,7 @@ MyGame.prototype._initText = function (font, posX, posY, color, textH) {
 // importantly, make sure to _NOT_ change any state.
 MyGame.prototype.draw = function () {
     // Step A: clear the canvas
-    gEngine.Core.clearCanvas([1, 1, 1, 1]);
+    gEngine.Core.clearCanvas([0.9, 0.9, 0.9, 1]);
 
     // Step  B: Activate the main Camera
     this.mCameraMain.setupViewProjection();
@@ -235,9 +246,11 @@ MyGame.prototype.draw = function () {
     // Step  C: Draw everything
     this.mSpriteSheet.draw(this.mCameraMain.getVPMatrix());
     this.mBound.draw(this.mCameraMain.getVPMatrix());
-    for (var i = 0; i < 4; i++) {
-        this.mBoundMarks[i].draw(this.mCameraMain.getVPMatrix());
+    for (var i = 0; i < 8; i++) {
         this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
+    }
+    for (var k = 0; k < 4; k++) {
+        this.mBoundMarks[k].draw(this.mCameraMain.getVPMatrix());
     }
     
     this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
@@ -246,17 +259,16 @@ MyGame.prototype.draw = function () {
     
     // draw again for each zoomed camera
     for (var i = 0; i < 4; i++) {
-        console.log("Camera: " + i);
         this.mCamerasZoomed[i].setupViewProjection();
         this.mSpriteSheet.draw(this.mCamerasZoomed[i].getVPMatrix());
         this.mBound.draw(this.mCamerasZoomed[i].getVPMatrix());
+        for (var k = 0; k < 8; k++) {
+            this.mSpriteSheetMarks[k].draw(this.mCamerasZoomed[i].getVPMatrix());
+        }
         for (var j = 0; j < 4; j++) {
-            console.log("Square: " + j);
             this.mBoundMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
-            this.mSpriteSheetMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
         }
     }
-    
 };
 
 // The 
@@ -350,33 +362,33 @@ MyGame.prototype.update = function () {
     // New update code for changing the sub-texture regions being shown"
     var deltaT = 0.001;
 
-    // <editor-fold desc="The font image:">
-    // zoom into the texture by updating texture coordinate
-    // For font: zoom to the upper left corner by changing bottom right
-    var texCoord = this.mFontImage.getElementUVCoordinateArray();
-            // The 8 elements:
-            //      mTexRight,  mTexTop,          // x,y of top-right
-            //      mTexLeft,   mTexTop,
-            //      mTexRight,  mTexBottom,
-            //      mTexLeft,   mTexBottom
-    var b = texCoord[SpriteRenderable.eTexCoordArray.eBottom] + deltaT;
-    var r = texCoord[SpriteRenderable.eTexCoordArray.eRight] - deltaT;
-    if (b > 1.0) {
-        b = 0;
-    }
-    if (r < 0) {
-        r = 1.0;
-    }
-    this.mFontImage.setElementUVCoordinate(
-        texCoord[SpriteRenderable.eTexCoordArray.eLeft],
-        r,
-        b,
-        texCoord[SpriteRenderable.eTexCoordArray.eTop]
-    );
-    // </editor-fold>
-
-    // remember to update this.mMinion's animation
-    this.mMinion.updateAnimation();
+//    // <editor-fold desc="The font image:">
+//    // zoom into the texture by updating texture coordinate
+//    // For font: zoom to the upper left corner by changing bottom right
+//    var texCoord = this.mFontImage.getElementUVCoordinateArray();
+//            // The 8 elements:
+//            //      mTexRight,  mTexTop,          // x,y of top-right
+//            //      mTexLeft,   mTexTop,
+//            //      mTexRight,  mTexBottom,
+//            //      mTexLeft,   mTexBottom
+//    var b = texCoord[SpriteRenderable.eTexCoordArray.eBottom] + deltaT;
+//    var r = texCoord[SpriteRenderable.eTexCoordArray.eRight] - deltaT;
+//    if (b > 1.0) {
+//        b = 0;
+//    }
+//    if (r < 0) {
+//        r = 1.0;
+//    }
+//    this.mFontImage.setElementUVCoordinate(
+//        texCoord[SpriteRenderable.eTexCoordArray.eLeft],
+//        r,
+//        b,
+//        texCoord[SpriteRenderable.eTexCoordArray.eTop]
+//    );
+//    // </editor-fold>
+//
+//    // remember to update this.mMinion's animation
+//    this.mMinion.updateAnimation();
 
     // interactive control of the display size
 
