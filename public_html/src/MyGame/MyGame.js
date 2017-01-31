@@ -38,6 +38,8 @@ function MyGame() {
     // this.mMinion = null;
     this.mSpriteSheet = null;
     this.mSpriteSheetMarks = [];
+    this.mNumAnimFrames = 0;
+    this.mAnimFrames = [];
 
     this.mTextCon16 = null;
 }
@@ -149,19 +151,19 @@ MyGame.prototype.initialize = function () {
 
     // right square
     this.mBoundMarks[0].getXform().setPosition(75, 30);
-    this.mBoundMarks[0].getXform().setSize(1, 1);
+    this.mBoundMarks[0].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[0].setColor([1, 0, 0, 1]);
     // bottom square
     this.mBoundMarks[1].getXform().setPosition(70, 25);
-    this.mBoundMarks[1].getXform().setSize(1, 1);
+    this.mBoundMarks[1].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[1].setColor([0, 1, 0, 1]);
     // left square
     this.mBoundMarks[2].getXform().setPosition(65, 30);
-    this.mBoundMarks[2].getXform().setSize(1, 1);
+    this.mBoundMarks[2].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[2].setColor([0, 0, 1, 1]);
     // top square
     this.mBoundMarks[3].getXform().setPosition(70, 35);
-    this.mBoundMarks[3].getXform().setSize(1, 1);
+    this.mBoundMarks[3].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[3].setColor([1, 0, 1, 1]);
     
     // ** Cameras ** //
@@ -182,23 +184,19 @@ MyGame.prototype.initialize = function () {
     // create the 4 zoomed cameras
     for (var i = 0; i < 4; i++) {
         this.mCamerasZoomed[i] = new Camera(
-            vec2.fromValues(70, 30),
-            5,
+            vec2.fromValues(this.mBoundMarks[i].getXform().getXPos(), this.mBoundMarks[i].getXform().getYPos()),
+            this.mBound.getXform().getWidth() / 2,
             [0, 0, 0, 0]
         );
         this.mCamerasZoomed[i].setBackgroundColor([1, 1, 1, 1]);
     }
     // right zoomed
-    this.mCamerasZoomed[0].setWCCenter(75, 30);
     this.mCamerasZoomed[0].setViewport([96, 96, 96, 96]);
     // bottom zoomed
-    this.mCamerasZoomed[1].setWCCenter(70, 25);
     this.mCamerasZoomed[1].setViewport([48, 0, 96, 96]);
     // left zoomed
-    this.mCamerasZoomed[2].setWCCenter(65, 30);
     this.mCamerasZoomed[2].setViewport([0, 96, 96, 96]);
     // top zoomed
-    this.mCamerasZoomed[3].setWCCenter(70, 35);
     this.mCamerasZoomed[3].setViewport([48, 192, 96, 96]);
 
     // ** Status text ** //
@@ -244,14 +242,22 @@ MyGame.prototype.draw = function () {
     this.mCameraMain.setupViewProjection();
 
     // Step  C: Draw everything
+    // background, sprite sheet
     this.mSpriteSheet.draw(this.mCameraMain.getVPMatrix());
-    this.mBound.draw(this.mCameraMain.getVPMatrix());
-    for (var i = 0; i < 8; i++) {
-        this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
-    }
+    // Interactive Bound square markers
     for (var k = 0; k < 4; k++) {
         this.mBoundMarks[k].draw(this.mCameraMain.getVPMatrix());
     }
+    // Interactive Bound outline
+    this.mBound.draw(this.mCameraMain.getVPMatrix());
+    for (var i = 0; i < this.mNumAnimFrames; i++) {
+        this.mAnimFrames[i].draw(this.mCameraMain.getVPMatrix());
+    }
+    // Sprite sheet corner square markers
+    for (var i = 0; i < 8; i++) {
+        this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
+    }
+    
     
     this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
     
@@ -261,12 +267,12 @@ MyGame.prototype.draw = function () {
     for (var i = 0; i < 4; i++) {
         this.mCamerasZoomed[i].setupViewProjection();
         this.mSpriteSheet.draw(this.mCamerasZoomed[i].getVPMatrix());
+        for (var j = 0; j < 4; j++) {
+            this.mBoundMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
+        }
         this.mBound.draw(this.mCamerasZoomed[i].getVPMatrix());
         for (var k = 0; k < 8; k++) {
             this.mSpriteSheetMarks[k].draw(this.mCamerasZoomed[i].getVPMatrix());
-        }
-        for (var j = 0; j < 4; j++) {
-            this.mBoundMarks[j].draw(this.mCamerasZoomed[i].getVPMatrix());
         }
     }
 };
@@ -357,7 +363,28 @@ MyGame.prototype.update = function () {
         }
     }
     
+    // update zoomed camera positions
+    for (var i = 0; i < 4; i++) {
+        this.mCamerasZoomed[i].setWCCenter(this.mBoundMarks[i].getXform().getXPos(), this.mBoundMarks[i].getXform().getYPos());
+        this.mCamerasZoomed[i].setWCWidth(this.mBound.getXform().getWidth() / 2);
+    }
     
+    // figure out how many animation frames there should be based on
+    // position of Interactive Bound
+    // TODO: optimize by only updating frames if the size of bound or
+    // number of frames changes
+    var gap = this.mSpriteSheet.getXform().getXPos() + this.mSpriteSheet.getXform().getWidth() / 2 - 
+            xform.getXPos() - xform.getWidth() / 2;
+    console.log("Gap size: " + gap);    
+    this.mNumAnimFrames = Math.floor(gap / xform.getWidth());
+    console.log("# of frames: " + this.mNumAnimFrames);
+    for (var i = 0; i < this.mNumAnimFrames; i++) {
+        this.mAnimFrames[i] = new SpriteRenderable(this.kBound);
+        this.mAnimFrames[i].setColor([1, 1, 1, 0]);
+    this.mAnimFrames[i].getXform().setPosition(xform.getXPos() + xform.getWidth() * (i + 1), xform.getYPos());
+    this.mAnimFrames[i].getXform().setSize(xform.getWidth(), xform.getHeight());
+    this.mAnimFrames[i].setElementPixelPositions(0, 512, 0, 512);
+    }
 
     // New update code for changing the sub-texture regions being shown"
     var deltaT = 0.001;
