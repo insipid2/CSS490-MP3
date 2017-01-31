@@ -35,11 +35,13 @@ function MyGame() {
     // 0 = right, 1 = bottom, 2 = left, 3 = top
     this.mBoundMarks = [];
     // this.mFontImage = null;
-    // this.mMinion = null;
+    this.mMinion = null;
     this.mSpriteSheet = null;
     this.mSpriteSheetMarks = [];
     this.mNumAnimFrames = 0;
     this.mAnimFrames = [];
+    this.mShowFrames = false;
+    this.spriteImg = null;
 
     this.mTextCon16 = null;
 }
@@ -78,12 +80,12 @@ MyGame.prototype.unloadScene = function () {
 
 MyGame.prototype.initialize = function () {
     // ** Sprite Sheet ** //
-    var spriteImg = gEngine.ResourceMap.retrieveAsset(this.kMinionSprite);
-    var spriteRatio = spriteImg.mWidth / spriteImg.mHeight;
+    this.spriteImg = gEngine.ResourceMap.retrieveAsset(this.kMinionSprite);
+    var spriteRatio = this.spriteImg.mWidth / this.spriteImg.mHeight;
     var spriteWidth = 0, spriteHeight = 0;
-    var spriteX = 50, spriteY = 50;
+    var spriteX = 0, spriteY = 0;
     var borderThickness = 0.2;
-    console.log("Image: " + this.kMinionSprite + ", width, height: " + spriteImg.mWidth + ", " + spriteImg.mHeight);
+    console.log("Image: " + this.kMinionSprite + ", width, height: " + this.spriteImg.mWidth + ", " + this.spriteImg.mHeight);
     console.log("Aspect Ratio: " + spriteRatio);
     
     this.mSpriteSheet = new SpriteSource(this.kMinionSprite);
@@ -104,7 +106,6 @@ MyGame.prototype.initialize = function () {
     for (var i = 0; i < 8; i++) {
         this.mSpriteSheetMarks.push(new Renderable());
     }
-    
     
     // right border
     this.mSpriteSheetMarks[0].getXform().setPosition(spriteX + spriteWidth / 2, spriteY);
@@ -142,7 +143,7 @@ MyGame.prototype.initialize = function () {
     // ** Interactive Bound ** //
     this.mBound = new SpriteRenderable(this.kBound);
     this.mBound.setColor([1, 1, 1, 0]);
-    this.mBound.getXform().setPosition(70, 30);
+    this.mBound.getXform().setPosition(spriteXform.getXPos(), spriteXform.getYPos());
     this.mBound.getXform().setSize(10, 10);
     this.mBound.setElementPixelPositions(0, 512, 0, 512);
     for (var i = 0; i < 4; i++) {
@@ -150,38 +151,57 @@ MyGame.prototype.initialize = function () {
     }
 
     // right square
-    this.mBoundMarks[0].getXform().setPosition(75, 30);
+    this.mBoundMarks[0].getXform().setPosition(this.mBound.getXform().getXPos() + this.mBound.getXform().getWidth() / 2,
+                                                this.mBound.getXform().getYPos());
     this.mBoundMarks[0].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[0].setColor([1, 0, 0, 1]);
     // bottom square
-    this.mBoundMarks[1].getXform().setPosition(70, 25);
+    this.mBoundMarks[1].getXform().setPosition(this.mBound.getXform().getXPos(),
+                                                this.mBound.getXform().getYPos() - this.mBound.getXform().getHeight() / 2);
     this.mBoundMarks[1].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[1].setColor([0, 1, 0, 1]);
     // left square
-    this.mBoundMarks[2].getXform().setPosition(65, 30);
+    this.mBoundMarks[2].getXform().setPosition(this.mBound.getXform().getXPos() - this.mBound.getXform().getWidth() / 2,
+                                                this.mBound.getXform().getYPos());
     this.mBoundMarks[2].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[2].setColor([0, 0, 1, 1]);
     // top square
-    this.mBoundMarks[3].getXform().setPosition(70, 35);
+    this.mBoundMarks[3].getXform().setPosition(this.mBound.getXform().getXPos(),
+                                                this.mBound.getXform().getYPos() + this.mBound.getXform().getHeight() / 2);
     this.mBoundMarks[3].getXform().setSize(0.75, 0.75);
     this.mBoundMarks[3].setColor([1, 0, 1, 1]);
     
+    // ** Animation Object ** //
+    this.mMinion = new SpriteAnimateRenderable(this.kMinionSprite);
+    this.mMinion.setColor([1, 1, 1, 0]);
+    this.mMinion.getXform().setPosition(0, 0);
+    this.mMinion.getXform().setSize(192, 192);
+    this.mMinion.setSpriteSequence(this.mBound.getXform().getYPos() + this.mBound.getXform().getHeight() / 2,
+                                    this.mBound.getXform().getXPos() - this.mBound.getXform().getWidth() / 2,     // first element pixel position: top-left 512 is top of image, 0 is left of image
+                                    this.mBound.getXform().getWidth(), this.mBound.getXform().getHeight(),    // widthxheight in pixels
+                                    this.mNumAnimFrames + 1,          // number of elements in this sequence
+                                    0);         // horizontal padding in between
+    this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
+    this.mMinion.setAnimationSpeed(500); // show each element for mAnimSpeed updates
+    
     // ** Cameras ** //
+    // Main
     this.mCameraMain = new Camera(
-        vec2.fromValues(50, 50),   // position of the camera
+        vec2.fromValues(spriteXform.getXPos(), spriteXform.getYPos()),   // position of the camera
         110,                       // width of camera
         [192, 0, 448, 480]           // viewport (orgX, orgY, width, height)
     );
     this.mCameraMain.setBackgroundColor([0.8, 0.8, 0.8, 1]);
 
+    // Animation
     this.mCameraAnimation = new Camera(
-        vec2.fromValues(0, 0),
-        100,
+        vec2.fromValues(this.mMinion.getXform().getXPos(), this.mMinion.getXform().getYPos()),
+        192,
         [0, 290, 190, 190]
     );
     this.mCameraAnimation.setBackgroundColor([0.7, 0.9, 0.7, 1]);
     
-    // create the 4 zoomed cameras
+    // Zoomed cameras (4)
     for (var i = 0; i < 4; i++) {
         this.mCamerasZoomed[i] = new Camera(
             vec2.fromValues(this.mBoundMarks[i].getXform().getXPos(), this.mBoundMarks[i].getXform().getYPos()),
@@ -211,17 +231,7 @@ MyGame.prototype.initialize = function () {
 //    this.mFontImage.getXform().setPosition(15, 50);
 //    this.mFontImage.getXform().setSize(20, 20);
 //
-//    // Minion animation
-//    this.mMinion = new SpriteAnimateRenderable(this.kMinionSprite);
-//    this.mMinion.setColor([1, 1, 1, 0]);
-//    this.mMinion.getXform().setPosition(15, 25);
-//    this.mMinion.getXform().setSize(24, 19.2);
-//    this.mMinion.setSpriteSequence(512, 0,     // first element pixel position: top-left 512 is top of image, 0 is left of image
-//                                    204, 164,    // widthxheight in pixels
-//                                    5,          // number of elements in this sequence
-//                                    0);         // horizontal padding in between
-//    this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
-//    this.mMinion.setAnimationSpeed(5); // show each element for mAnimSpeed updates
+    
 
     this.mTextToWork = this.mTextCon16;
 };
@@ -250,9 +260,13 @@ MyGame.prototype.draw = function () {
     }
     // Interactive Bound outline
     this.mBound.draw(this.mCameraMain.getVPMatrix());
-    for (var i = 0; i < this.mNumAnimFrames; i++) {
-        this.mAnimFrames[i].draw(this.mCameraMain.getVPMatrix());
+    // Animation Frames
+    if (this.mShowFrames) {
+        for (var i = 0; i < this.mNumAnimFrames; i++) {
+            this.mAnimFrames[i].draw(this.mCameraMain.getVPMatrix());
+        }
     }
+    
     // Sprite sheet corner square markers
     for (var i = 0; i < 8; i++) {
         this.mSpriteSheetMarks[i].draw(this.mCameraMain.getVPMatrix());
@@ -262,6 +276,7 @@ MyGame.prototype.draw = function () {
     this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
     
     this.mCameraAnimation.setupViewProjection();
+    this.mMinion.draw(this.mCameraAnimation.getVPMatrix());
     
     // draw again for each zoomed camera
     for (var i = 0; i < 4; i++) {
@@ -288,10 +303,15 @@ MyGame.prototype.update = function () {
     var deltaSize = 1;
     var xform = this.mBound.getXform();
 
-    // Space
+    // Space - finer adjustments
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Space)) {
         deltaX *= .01;
         deltaSize *= .01;
+    }
+    
+    // Q - toggle showing of animation frames
+    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Q)) {
+        this.mShowFrames = !this.mShowFrames;
     }
     
     // Support Bound movements TODO: rest of bounds
@@ -381,10 +401,22 @@ MyGame.prototype.update = function () {
     for (var i = 0; i < this.mNumAnimFrames; i++) {
         this.mAnimFrames[i] = new SpriteRenderable(this.kBound);
         this.mAnimFrames[i].setColor([1, 1, 1, 0]);
-    this.mAnimFrames[i].getXform().setPosition(xform.getXPos() + xform.getWidth() * (i + 1), xform.getYPos());
-    this.mAnimFrames[i].getXform().setSize(xform.getWidth(), xform.getHeight());
-    this.mAnimFrames[i].setElementPixelPositions(0, 512, 0, 512);
+        this.mAnimFrames[i].getXform().setPosition(xform.getXPos() + xform.getWidth() * (i + 1), xform.getYPos());
+        this.mAnimFrames[i].getXform().setSize(xform.getWidth(), xform.getHeight());
+        this.mAnimFrames[i].setElementPixelPositions(0, 512, 0, 512);
     }
+    
+    // update Minion (animation object) based on Interactive Bound and # of Animation Frame
+    var vertDiff = (this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2) - (xform.getYPos() + xform.getHeight() / 2);
+    var vertScale = vertDiff / this.mSpriteSheet.getXform().getHeight();
+    
+    var horizDiff = (this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2) - (xform.getXPos() - xform.getWidth() / 2);
+    var horizScale = horizDiff / this.mSpriteSheet.getXform().getWidth();
+    this.mMinion.setSpriteSequence(this.spriteImg.mHeight * vertScale, // top edge
+                                    this.spriteImg.mWidth * horizScale, // left edge
+                                    xform.getWidth(), xform.getHeight(),    // widthxheight in pixels
+                                    this.mNumAnimFrames + 1,          // number of elements in this sequence
+                                    0);         // horizontal padding in between
 
     // New update code for changing the sub-texture regions being shown"
     var deltaT = 0.001;
