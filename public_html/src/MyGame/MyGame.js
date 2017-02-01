@@ -371,7 +371,8 @@ MyGame.prototype.update = function () {
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
-        if (xform.getYPos() + xform.getHeight() / 2 < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2) {
+        if (xform.getYPos() + xform.getHeight() / 2 < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2 &&
+                xform.getYPos() - xform.getHeight() / 2 > this.mSpriteSheet.getXform().getYPos() - this.mSpriteSheet.getXform().getHeight() / 2) {
             xform.incHeightBy(deltaSize);
             this.mBoundMarks[1].getXform().incYPosBy(-deltaX);
             this.mBoundMarks[3].getXform().incYPosBy(deltaX);
@@ -389,7 +390,8 @@ MyGame.prototype.update = function () {
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Left)) {
-        if (xform.getWidth() < 100) {
+        if (xform.getXPos() + xform.getWidth() / 2 < this.mSpriteSheet.getXform().getXPos() + this.mSpriteSheet.getXform().getWidth() / 2 &&
+                xform.getXPos() - xform.getWidth() / 2 > this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2) {
             xform.incWidthBy(deltaSize);
             this.mBoundMarks[0].getXform().incXPosBy(deltaX);
             this.mBoundMarks[2].getXform().incXPosBy(-deltaX);
