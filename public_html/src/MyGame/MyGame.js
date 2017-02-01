@@ -39,11 +39,16 @@ function MyGame() {
     this.mSpriteSheet = null;
     this.mSpriteSheetMarks = [];
     this.mNumAnimFrames = 0;
+    this.mFirstFrame = true;
+    this.mBoundMoved = false;
     this.mAnimFrames = [];
     this.mShowFrames = false;
     this.spriteImg = null;
 
-    this.mTextCon16 = null;
+    this.mBoundText = null;
+    this.mImageText1 = null;
+    this.mImageText2 = null;
+    this.mNumFormat = null;
 }
 gEngine.Core.inheritPrototype(MyGame, Scene);
 
@@ -83,7 +88,7 @@ MyGame.prototype.initialize = function () {
     this.spriteImg = gEngine.ResourceMap.retrieveAsset(this.kMinionSprite);
     var spriteRatio = this.spriteImg.mWidth / this.spriteImg.mHeight;
     var spriteWidth = 0, spriteHeight = 0;
-    var spriteX = 0, spriteY = 0;
+    var spriteX = 50, spriteY = 50;
     var borderThickness = 0.2;
     console.log("Image: " + this.kMinionSprite + ", width, height: " + this.spriteImg.mWidth + ", " + this.spriteImg.mHeight);
     console.log("Aspect Ratio: " + spriteRatio);
@@ -182,7 +187,7 @@ MyGame.prototype.initialize = function () {
                                     this.mNumAnimFrames + 1,          // number of elements in this sequence
                                     0);         // horizontal padding in between
     this.mMinion.setAnimationType(SpriteAnimateRenderable.eAnimationType.eAnimateSwing);
-    this.mMinion.setAnimationSpeed(500); // show each element for mAnimSpeed updates
+    this.mMinion.setAnimationSpeed(60); // show each element for mAnimSpeed updates
     
     // ** Cameras ** //
     // Main
@@ -220,9 +225,20 @@ MyGame.prototype.initialize = function () {
     this.mCamerasZoomed[3].setViewport([48, 192, 96, 96]);
 
     // ** Status text ** //
-    this.mTextCon16 = new FontRenderable("Consolas 16: in black");
-    this.mTextCon16.setFont(this.kFontCon16);
-    this._initText(this.mTextCon16, 40, 2, [0, 0, 0, 1], 2);
+    this.mNumFormat = new Intl.NumberFormat("en-US",
+                        { style: "decimal", minimumFractionDigits: 1,
+                          maximumFractionDigits: 1 });
+    this.mBoundText = new FontRenderable("");
+    this.mBoundText.setFont(this.kFontCon72);
+    this._initText(this.mBoundText, 0, 2, [0, 0, 0, 1], 2.5);
+    
+    this.mImageText1 = new FontRenderable("");
+    this.mImageText1.setFont(this.kFontCon72);
+    this._initText(this.mImageText1, 0, -2, [0, 0, 0, 1], 2.5);
+    
+    this.mImageText2 = new FontRenderable("");
+    this.mImageText2.setFont(this.kFontCon72);
+    this._initText(this.mImageText2, 0, -5, [0, 0, 0, 1], 2.5);
 
     
 //    // Font image zoom
@@ -232,8 +248,6 @@ MyGame.prototype.initialize = function () {
 //    this.mFontImage.getXform().setSize(20, 20);
 //
     
-
-    this.mTextToWork = this.mTextCon16;
 };
 
 MyGame.prototype._initText = function (font, posX, posY, color, textH) {
@@ -273,7 +287,9 @@ MyGame.prototype.draw = function () {
     }
     
     
-    this.mTextCon16.draw(this.mCameraMain.getVPMatrix());
+    this.mBoundText.draw(this.mCameraMain.getVPMatrix());
+    this.mImageText1.draw(this.mCameraMain.getVPMatrix());
+    this.mImageText2.draw(this.mCameraMain.getVPMatrix());
     
     this.mCameraAnimation.setupViewProjection();
     this.mMinion.draw(this.mCameraAnimation.getVPMatrix());
@@ -292,8 +308,7 @@ MyGame.prototype.draw = function () {
     }
 };
 
-// The 
-//  function, updates the application state. Make sure to _NOT_ draw
+// updates the application state. Make sure to _NOT_ draw
 // anything from this function!
 MyGame.prototype.update = function () {
     // let's only allow the movement of hero, 
@@ -320,6 +335,7 @@ MyGame.prototype.update = function () {
             xform.incYPosBy(deltaX);
             for (var i = 0; i < 4; i++) {
                 this.mBoundMarks[i].getXform().incYPosBy(deltaX);
+                this.mBoundMoved = true;
             }
         }
     }
@@ -329,6 +345,7 @@ MyGame.prototype.update = function () {
             xform.incYPosBy(-deltaX);
             for (var i = 0; i < 4; i++) {
                 this.mBoundMarks[i].getXform().incYPosBy(-deltaX);
+                this.mBoundMoved = true;
             }
         }
     }
@@ -338,6 +355,7 @@ MyGame.prototype.update = function () {
             xform.incXPosBy(deltaX);
             for (var i = 0; i < 4; i++) {
                 this.mBoundMarks[i].getXform().incXPosBy(deltaX);
+                this.mBoundMoved = true;
             }
         }
     }
@@ -347,15 +365,17 @@ MyGame.prototype.update = function () {
             xform.incXPosBy(-deltaX);
             for (var i = 0; i < 4; i++) {
                 this.mBoundMarks[i].getXform().incXPosBy(-deltaX);
+                this.mBoundMoved = true;
             }
         }
     }
     
     if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
-        if (xform.getHeight() < 100) {
+        if (xform.getYPos() + xform.getHeight() / 2 < this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2) {
             xform.incHeightBy(deltaSize);
             this.mBoundMarks[1].getXform().incYPosBy(-deltaX);
             this.mBoundMarks[3].getXform().incYPosBy(deltaX);
+            this.mBoundMoved = true;
         }
     }
     
@@ -364,6 +384,7 @@ MyGame.prototype.update = function () {
             xform.incHeightBy(-deltaSize);
             this.mBoundMarks[1].getXform().incYPosBy(deltaX);
             this.mBoundMarks[3].getXform().incYPosBy(-deltaX);
+            this.mBoundMoved = true;
         }
     }
     
@@ -372,6 +393,7 @@ MyGame.prototype.update = function () {
             xform.incWidthBy(deltaSize);
             this.mBoundMarks[0].getXform().incXPosBy(deltaX);
             this.mBoundMarks[2].getXform().incXPosBy(-deltaX);
+            this.mBoundMoved = true;
         }
     }
     
@@ -380,24 +402,24 @@ MyGame.prototype.update = function () {
             xform.incWidthBy(-deltaSize);
             this.mBoundMarks[0].getXform().incXPosBy(-deltaX);
             this.mBoundMarks[2].getXform().incXPosBy(deltaX);
+            this.mBoundMoved = true;
         }
     }
     
-    // update zoomed camera positions
-    for (var i = 0; i < 4; i++) {
-        this.mCamerasZoomed[i].setWCCenter(this.mBoundMarks[i].getXform().getXPos(), this.mBoundMarks[i].getXform().getYPos());
-        this.mCamerasZoomed[i].setWCWidth(this.mBound.getXform().getWidth() / 2);
-    }
+    if (this.mBoundMoved) {
+        // update zoomed camera positions
+        for (var i = 0; i < 4; i++) {
+            this.mCamerasZoomed[i].setWCCenter(this.mBoundMarks[i].getXform().getXPos(), this.mBoundMarks[i].getXform().getYPos());
+            this.mCamerasZoomed[i].setWCWidth(this.mBound.getXform().getWidth() / 2);
+        }
     
-    // figure out how many animation frames there should be based on
-    // position of Interactive Bound
-    // TODO: optimize by only updating frames if the size of bound or
-    // number of frames changes
+        // figure out how many animation frames there should be based on
+        // position of Interactive Bound
+        // TODO: optimize by only updating frames if the size of bound or
+        // number of frames changes
     var gap = this.mSpriteSheet.getXform().getXPos() + this.mSpriteSheet.getXform().getWidth() / 2 - 
-            xform.getXPos() - xform.getWidth() / 2;
-    console.log("Gap size: " + gap);    
+            xform.getXPos() - xform.getWidth() / 2;   
     this.mNumAnimFrames = Math.floor(gap / xform.getWidth());
-    console.log("# of frames: " + this.mNumAnimFrames);
     for (var i = 0; i < this.mNumAnimFrames; i++) {
         this.mAnimFrames[i] = new SpriteRenderable(this.kBound);
         this.mAnimFrames[i].setColor([1, 1, 1, 0]);
@@ -407,19 +429,93 @@ MyGame.prototype.update = function () {
     }
     
     // update Minion (animation object) based on Interactive Bound and # of Animation Frame
+    var uvScaleHoriz = this.mSpriteSheet.getXform().getWidth() / this.spriteImg.mWidth;
+    var uvScaleVert = this.mSpriteSheet.getXform().getHeight() / this.spriteImg.mHeight;
+    
     var vertDiff = (this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2) - (xform.getYPos() + xform.getHeight() / 2);
     var vertScale = vertDiff / this.mSpriteSheet.getXform().getHeight();
+    var topEdge = this.spriteImg.mHeight - this.spriteImg.mHeight * vertScale;
+    // var topEdge = (xform.getYPos() + xform.getHeight() / 2) / uvScaleVert; // alt version
     
     var horizDiff = (this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2) - (xform.getXPos() - xform.getWidth() / 2);
-    var horizScale = horizDiff / this.mSpriteSheet.getXform().getWidth();
-    this.mMinion.setSpriteSequence(this.spriteImg.mHeight * vertScale, // top edge
-                                    this.spriteImg.mWidth * horizScale, // left edge
-                                    xform.getWidth(), xform.getHeight(),    // widthxheight in pixels
-                                    this.mNumAnimFrames + 1,          // number of elements in this sequence
+    var horizScale = Math.abs(horizDiff) / this.mSpriteSheet.getXform().getWidth();
+    var leftEdge = this.spriteImg.mWidth * horizScale;
+    // var leftEdge = (xform.getXPos() - xform.getWidth() / 2) / uvScaleHoriz; // alt version
+    
+    var sourceWidth = xform.getWidth();
+    var sourceHeight = xform.getHeight();
+    var numAnimFrames = this.mNumAnimFrames + 1;
+    // ** adjust both the reference edges and the widthxheight for scale **
+    this.mMinion.setSpriteSequence(topEdge, // top edge
+                                    leftEdge, // left edge
+                                    sourceWidth / uvScaleHoriz,
+                                    sourceHeight / uvScaleVert,    // widthxheight in pixels
+                                    numAnimFrames,          // number of elements in this sequence
                                     0);         // horizontal padding in between
-
+    
+    // update bound text
+    this.mBoundText.setText("Interactive Bound: Position: " +
+            this.mNumFormat.format(xform.getXPos()) + ", " + this.mNumFormat.format(xform.getYPos()) + 
+            "; Size: " + this.mNumFormat.format(xform.getWidth()) + " x " + this.mNumFormat.format(xform.getHeight()));
+    // update image frame text
+    this.mImageText1.setText("Source: Image Dimensions: " + 
+            this.spriteImg.mWidth + " x " +
+            this.spriteImg.mHeight);
+    this.mImageText2.setText("  Frame: Top Edge: " + 
+            this.mNumFormat.format(topEdge) + ", Left Edge: " + 
+            this.mNumFormat.format(leftEdge) + ", Width: " +
+            this.mNumFormat.format(sourceWidth) + ", Height: " +
+            this.mNumFormat.format(sourceHeight));
+        this.mBoundMoved = false;
+    }
+    
+    if (this.mFirstFrame) {
+        // update Minion (animation object) based on Interactive Bound and # of Animation Frame
+    var uvScaleHoriz = this.mSpriteSheet.getXform().getWidth() / this.spriteImg.mWidth;
+    var uvScaleVert = this.mSpriteSheet.getXform().getHeight() / this.spriteImg.mHeight;
+    
+    var vertDiff = (this.mSpriteSheet.getXform().getYPos() + this.mSpriteSheet.getXform().getHeight() / 2) - (xform.getYPos() + xform.getHeight() / 2);
+    var vertScale = vertDiff / this.mSpriteSheet.getXform().getHeight();
+    var topEdge = this.spriteImg.mHeight - this.spriteImg.mHeight * vertScale;
+    // var topEdge = (xform.getYPos() + xform.getHeight() / 2) / uvScaleVert; // alt version
+    
+    var horizDiff = (this.mSpriteSheet.getXform().getXPos() - this.mSpriteSheet.getXform().getWidth() / 2) - (xform.getXPos() - xform.getWidth() / 2);
+    var horizScale = Math.abs(horizDiff) / this.mSpriteSheet.getXform().getWidth();
+    var leftEdge = this.spriteImg.mWidth * horizScale;
+    // var leftEdge = (xform.getXPos() - xform.getWidth() / 2) / uvScaleHoriz; // alt version
+    
+    var sourceWidth = xform.getWidth();
+    var sourceHeight = xform.getHeight();
+    var numAnimFrames = this.mNumAnimFrames + 1;
+    // ** adjust both the reference edges and the widthxheight for scale **
+    this.mMinion.setSpriteSequence(topEdge, // top edge
+                                    leftEdge, // left edge
+                                    sourceWidth / uvScaleHoriz,
+                                    sourceHeight / uvScaleVert,    // widthxheight in pixels
+                                    numAnimFrames,          // number of elements in this sequence
+                                    0);         // horizontal padding in between
+    
+    // update bound text
+    this.mBoundText.setText("Interactive Bound: Position: " +
+            this.mNumFormat.format(xform.getXPos()) + ", " + this.mNumFormat.format(xform.getYPos()) + 
+            "; Size: " + this.mNumFormat.format(xform.getWidth()) + " x " + this.mNumFormat.format(xform.getHeight()));
+    // update image frame text
+    this.mImageText1.setText("Source: Image Dimensions: " + 
+            this.spriteImg.mWidth + " x " +
+            this.spriteImg.mHeight);
+    this.mImageText2.setText("  Frame: Top Edge: " + 
+            this.mNumFormat.format(topEdge) + ", Left Edge: " + 
+            this.mNumFormat.format(leftEdge) + ", Width: " +
+            this.mNumFormat.format(sourceWidth) + ", Height: " +
+            this.mNumFormat.format(sourceHeight));
+        this.mFirstFrame = false;
+    }
+    this.mMinion.updateAnimation();
+    
+    
     // New update code for changing the sub-texture regions being shown"
     var deltaT = 0.001;
+    
 
 //    // <editor-fold desc="The font image:">
 //    // zoom into the texture by updating texture coordinate
@@ -446,43 +542,10 @@ MyGame.prototype.update = function () {
 //    );
 //    // </editor-fold>
 //
-//    // remember to update this.mMinion's animation
-//    this.mMinion.updateAnimation();
+    // remember to update this.mMinion's animation
+   
 
-    // interactive control of the display size
 
-    // choose which text to work on
-//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Zero)) {
-//        this.mTextToWork = this.mTextCon16;
-//    }
-//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.One)) {
-//        this.mTextToWork = this.mTextCon24;
-//    }
-//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Three)) {
-//        this.mTextToWork = this.mTextCon32;
-//    }
-//    if (gEngine.Input.isKeyClicked(gEngine.Input.keys.Four)) {
-//        this.mTextToWork = this.mTextCon72;
-//    }
 
-//    var deltaF = 0.005;
-//    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Up)) {
-//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
-//            this.mTextToWork.getXform().incWidthBy(deltaF);
-//        }
-//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
-//            this.mTextToWork.getXform().incHeightBy(deltaF);
-//        }
-//        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
-//    }
-//
-//    if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Down)) {
-//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.X)) {
-//            this.mTextToWork.getXform().incWidthBy(-deltaF);
-//        }
-//        if (gEngine.Input.isKeyPressed(gEngine.Input.keys.Y)) {
-//            this.mTextToWork.getXform().incHeightBy(-deltaF);
-//        }
-//        this.mTextSysFont.setText(this.mTextToWork.getXform().getWidth().toFixed(2) + "x" + this.mTextToWork.getXform().getHeight().toFixed(2));
-//    }
+
 };
