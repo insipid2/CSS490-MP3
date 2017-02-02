@@ -16,7 +16,7 @@ function MyGame() {
     this.kFontImage = "assets/Consolas-72.png";
     this.kMinionSprite = "assets/minion_sprite.png";
     this.kBound = "assets/Bound.png";
-    this.imageToUse = this.kFontImage;
+    this.imageToUse = this.kMinionSprite;
 
     // fonts
     this.kFontCon16 = "assets/fonts/Consolas-16";  // notice font names do not need extensions!
